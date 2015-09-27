@@ -346,10 +346,10 @@ impl<'a, Iter: 'a> de::VariantVisitor for VariantVisitor<'a, Iter>
         let ret = {
             let v = expect_val!(self.0, Text, "content");
             let v = try!(self.0.from_utf8(v));
-            KeyDeserializer::visit(v)
+            try!(KeyDeserializer::visit(v))
         };
         expect!(self.0, EndTagName(_), "end tag name");
-        ret
+        Ok(ret)
     }
 }
 
