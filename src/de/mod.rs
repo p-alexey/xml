@@ -62,7 +62,7 @@ where Iter: Iterator<Item=io::Result<u8>>,
     type Error = Error;
 
     #[inline]
-    fn visit<V>(&mut self, mut visitor: V) -> Result<V::Value, Error>
+    fn deserialize<V>(&mut self, mut visitor: V) -> Result<V::Value, Error>
         where V: de::Visitor,
     {
         debug!("InnerDeserializer::visit\n");
@@ -85,7 +85,7 @@ where Iter: Iterator<Item=io::Result<u8>>,
         }
     }
 
-    fn visit_option<V>(&mut self, mut visitor: V) -> Result<V::Value, Error>
+    fn deserialize_option<V>(&mut self, mut visitor: V) -> Result<V::Value, Error>
         where V: de::Visitor,
     {
         debug!("InnerDeserializer::visit_option\n");
@@ -97,7 +97,7 @@ where Iter: Iterator<Item=io::Result<u8>>,
     }
 
     #[inline]
-    fn visit_seq<V>(&mut self, mut visitor: V) -> Result<V::Value, Error>
+    fn deserialize_seq<V>(&mut self, mut visitor: V) -> Result<V::Value, Error>
         where V: de::Visitor,
     {
         debug!("InnerDeserializer::visit_seq\n");
@@ -105,27 +105,27 @@ where Iter: Iterator<Item=io::Result<u8>>,
         visitor.visit_seq(SeqVisitor::new(self.0))
     }
 
-    fn visit_map<V>(&mut self, mut visitor: V) -> Result<V::Value, Error>
+    fn deserialize_map<V>(&mut self, mut visitor: V) -> Result<V::Value, Error>
         where V: de::Visitor,
     {
         debug!("InnerDeserializer::visit_map\n");
         visitor.visit_map(ContentVisitor::new_attr(&mut self.0))
     }
 
-    fn visit_unit_struct<V>(&mut self, _name: &str, _visitor: V) -> Result<V::Value, Error>
+    fn deserialize_unit_struct<V>(&mut self, _name: &str, _visitor: V) -> Result<V::Value, Error>
         where V: de::Visitor,
     {
         unimplemented!()
     }
 
-    fn visit_tuple_struct<V>(&mut self, _name: &str, _len: usize, _visitor: V) -> Result<V::Value, Error>
+    fn deserialize_tuple_struct<V>(&mut self, _name: &str, _len: usize, _visitor: V) -> Result<V::Value, Error>
         where V: de::Visitor,
     {
         unimplemented!()
     }
 
     #[inline]
-    fn visit_enum<V>(&mut self, _enum: &str, _variants: &'static [&'static str], mut visitor: V) -> Result<V::Value, Error>
+    fn deserialize_enum<V>(&mut self, _enum: &str, _variants: &'static [&'static str], mut visitor: V) -> Result<V::Value, Error>
         where V: de::EnumVisitor,
     {
         debug!("InnerDeserializer::visit_enum\n");
@@ -157,7 +157,7 @@ impl<'a> de::Deserializer for KeyDeserializer<'a> {
     type Error = Error;
 
     #[inline]
-    fn visit<V>(&mut self, mut visitor: V) -> Result<V::Value, Error>
+    fn deserialize<V>(&mut self, mut visitor: V) -> Result<V::Value, Error>
         where V: de::Visitor,
     {
         debug!("keydeserializer::visit\n");
@@ -166,21 +166,21 @@ impl<'a> de::Deserializer for KeyDeserializer<'a> {
     }
 
     #[inline]
-    fn visit_option<V>(&mut self, _visitor: V) -> Result<V::Value, Error>
+    fn deserialize_option<V>(&mut self, _visitor: V) -> Result<V::Value, Error>
         where V: de::Visitor,
     {
         unimplemented!()
     }
 
     #[inline]
-    fn visit_enum<V>(&mut self, _enum: &str, _variants: &'static [&'static str], _visitor: V) -> Result<V::Value, Error>
+    fn deserialize_enum<V>(&mut self, _enum: &str, _variants: &'static [&'static str], _visitor: V) -> Result<V::Value, Error>
         where V: de::EnumVisitor,
     {
         unimplemented!()
     }
 
     #[inline]
-    fn visit_seq<V>(&mut self, _visitor: V) -> Result<V::Value, Error>
+    fn deserialize_seq<V>(&mut self, _visitor: V) -> Result<V::Value, Error>
         where V: de::Visitor,
     {
         unimplemented!()
@@ -217,14 +217,14 @@ impl<Iter> de::Deserializer for Deserializer<Iter>
     type Error = Error;
 
     #[inline]
-    fn visit<V>(&mut self, visitor: V) -> Result<V::Value, Error>
+    fn deserialize<V>(&mut self, visitor: V) -> Result<V::Value, Error>
         where V: de::Visitor,
     {
         debug!("Deserializer::visit\n");
         expect!(self.rdr, StartTagName(_), "start tag name");
         try!(self.rdr.bump());
         let is_seq = &mut false;
-        let v = try!(InnerDeserializer(&mut self.rdr, is_seq).visit(visitor));
+        let v = try!(InnerDeserializer(&mut self.rdr, is_seq).deserialize(visitor));
         assert!(!*is_seq);
         match try!(self.rdr.ch()) {
             EndTagName(_) => {},
@@ -236,7 +236,7 @@ impl<Iter> de::Deserializer for Deserializer<Iter>
     }
 
     #[inline]
-    fn visit_option<V>(&mut self, mut visitor: V) -> Result<V::Value, Error>
+    fn deserialize_option<V>(&mut self, mut visitor: V) -> Result<V::Value, Error>
         where V: de::Visitor,
     {
         debug!("Deserializer::visit\n");
@@ -259,7 +259,7 @@ impl<Iter> de::Deserializer for Deserializer<Iter>
     }
 
     #[inline]
-    fn visit_enum<V>(&mut self, _enum: &str, _variants: &'static [&'static str], mut visitor: V) -> Result<V::Value, Error>
+    fn deserialize_enum<V>(&mut self, _enum: &str, _variants: &'static [&'static str], mut visitor: V) -> Result<V::Value, Error>
         where V: de::EnumVisitor,
     {
         expect!(self.rdr, StartTagName(_), "start tag name");
@@ -271,21 +271,21 @@ impl<Iter> de::Deserializer for Deserializer<Iter>
     }
 
     #[inline]
-    fn visit_seq<V>(&mut self, _visitor: V) -> Result<V::Value, Error>
+    fn deserialize_seq<V>(&mut self, _visitor: V) -> Result<V::Value, Error>
         where V: de::Visitor,
     {
         unimplemented!()
     }
 
     #[inline]
-    fn visit_map<V>(&mut self, visitor: V) -> Result<V::Value, Error>
+    fn deserialize_map<V>(&mut self, visitor: V) -> Result<V::Value, Error>
         where V: de::Visitor,
     {
         debug!("Deserializer::visit_map\n");
         expect!(self.rdr, StartTagName(_), "start tag name"); // TODO: named map
         try!(self.rdr.bump());
         let is_seq = &mut false;
-        let v = try!(InnerDeserializer(&mut self.rdr, is_seq).visit_map(visitor));
+        let v = try!(InnerDeserializer(&mut self.rdr, is_seq).deserialize_map(visitor));
         assert!(!*is_seq);
         match try!(self.ch()) {
             EndTagName(_) | EmptyElementEnd(_) => {},
@@ -348,7 +348,7 @@ impl<'a, Iter: 'a> de::VariantVisitor for VariantVisitor<'a, Iter>
         impl<'a, Iter: Iterator<Item=io::Result<u8>> + 'a> de::Deserializer for Dummy<'a, Iter> {
             type Error = Error;
 
-            fn visit<V>(&mut self, _visitor: V) -> Result<V::Value, Error>
+            fn deserialize<V>(&mut self, _visitor: V) -> Result<V::Value, Error>
                 where V: de::Visitor,
             {
                 let ret = {
@@ -360,7 +360,7 @@ impl<'a, Iter: 'a> de::VariantVisitor for VariantVisitor<'a, Iter>
                 Ok(ret)
             }
 
-            fn visit_map<V>(&mut self, mut visitor: V) -> Result<V::Value, Error>
+            fn deserialize_map<V>(&mut self, mut visitor: V) -> Result<V::Value, Error>
                 where V: de::Visitor,
             {
                 visitor.visit_map(ContentVisitor::new_attr(&mut self.0))
@@ -375,25 +375,25 @@ struct UnitDeserializer;
 impl de::Deserializer for UnitDeserializer {
     type Error = Error;
 
-    fn visit<V>(&mut self, mut visitor: V) -> Result<V::Value, Error>
+    fn deserialize<V>(&mut self, mut visitor: V) -> Result<V::Value, Error>
         where V: de::Visitor,
     {
         visitor.visit_unit()
     }
 
-    fn visit_option<V>(&mut self, mut visitor: V) -> Result<V::Value, Error>
+    fn deserialize_option<V>(&mut self, mut visitor: V) -> Result<V::Value, Error>
         where V: de::Visitor,
     {
         visitor.visit_none()
     }
 
-    fn visit_seq<V>(&mut self, mut visitor: V) -> Result<V::Value, Error>
+    fn deserialize_seq<V>(&mut self, mut visitor: V) -> Result<V::Value, Error>
         where V: de::Visitor,
     {
         visitor.visit_seq(EmptySeqVisitor)
     }
 
-    fn visit_map<V>(&mut self, mut visitor: V) -> Result<V::Value, Error>
+    fn deserialize_map<V>(&mut self, mut visitor: V) -> Result<V::Value, Error>
         where V: de::Visitor,
     {
         visitor.visit_map(EmptyMapVisitor)
